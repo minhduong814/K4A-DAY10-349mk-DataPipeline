@@ -1,8 +1,8 @@
 # Danh Sách Thành Viên & Báo Cáo Phân Công Nhóm
 
-- **Tên Nhóm:** `[Điền tên nhóm]`
-- **Mã Nhóm / Lớp:** `K4-L3-DAY10`
-- **Tên Repository Nộp Bài:** `K4-L3-DAY10-TenNhom-DataPipeline`
+- **Tên Nhóm / Hình thức:** `Solo (Thực hiện độc lập - Đã được Lab Coach phê duyệt)`
+- **Mã Nhóm / Lớp:** `K4-L3A-DAY10`
+- **Tên Repository Nộp Bài:** `minhduong814/K4A-DAY10-GroupXX-349mk`
 
 ---
 
@@ -10,49 +10,26 @@
 
 | STT | Họ và tên | MSSV | Email | Vai trò & Phân công công việc | Báo cáo cá nhân |
 |---:|---|---|---|---|---|
-| 1 | | | | Trưởng nhóm / Pipeline Integrator (`core/`, `phase1.py`, `corruption_flow.py`) | `report/<MSSV1>_HoTen.md` |
-| 2 | | | | Data Foundation & Recovery (`crossref.py`, `cleaning.py`, raw data) | `report/<MSSV2>_HoTen.md` |
-| 3 | | | | RAG & Vector Index (`retrieval/index.py`, `embeddings.py`, ChromaDB) | `report/<MSSV3>_HoTen.md` |
-| 4 | | | | Observability & Evaluation (`quality.py` GX 1.x, `testset.py`, reporting) | `report/<MSSV4>_HoTen.md` |
+| 1 | Minh Dương (Nguyễn Minh Dương) | [MSSV của bạn] | minhduong814814@gmail.com | Toàn bộ các vai trò (Pipeline Integrator, Ingestion & Cleaning, Vector Index & RAG, Observability & Evaluation) | `report/individual_report.md` |
 
-*(Nếu nhóm có 3 hoặc 5-6 thành viên, xem bảng phân công chi tiết theo vai trò trong file `CHECKPOINTS.md`)*.
+> *Ghi chú:* Học viên thực hiện độc lập bài lab theo sự đồng ý của Lab Coach, trực tiếp thiết kế, lập trình và kiểm thử toàn bộ các module từ Ingestion đến RAG Observability.
 
 ---
 
 ## # Cá nhân
 
-### ## HoVaTen1-MSSV1
-- **Vai trò:** Trưởng nhóm & Điều phối Pipeline.
+### ## MinhDuong-[MSSV]
+- **Vai trò:** Solo Developer & Full-Pipeline Owner.
 - **Công việc chi tiết đã hoàn thành:**
-  - Thiết lập cấu hình hệ thống `core/config.py` và đường dẫn artifacts `core/utils.py`.
-  - Kết nối luồng thực thi trong `src/pipelines/phase1.py` và `src/pipelines/corruption_flow.py`.
-  - Kiểm tra tính nhất quán của các artifacts và theo dõi Contributor tracking trên GitHub nhánh `main`.
+  - **Môi trường & Kiến trúc:** Cấu hình hệ sinh thái Python, quản trị secret an toàn (`.env`), thiết lập các đường dẫn artifact trong `src/core/config.py` và `src/core/utils.py`.
+  - **Ingestion & Data Lineage:** Phát triển `src/ingestion/crossref.py` với khả năng parse metadata học thuật từ Crossref REST API, bóc tách thẻ JATS XML, và triển khai cơ chế offline snapshot fallback để đảm bảo pipeline chạy ổn định khi mất mạng.
+  - **Cleaning & Data Modeling:** Xây dựng `src/ingestion/cleaning.py` chuẩn hóa text, tính `age_days = (run_date - published).days`, tạo trường đa ngữ cảnh 5 thành phần `text_for_embedding`, khử trùng lặp theo `paper_id`.
+  - **Embedding & Vector Storage:** Phát triển `src/retrieval/embeddings.py` với kiến trúc Dual-Engine hỗ trợ cả Google Generative AI Embeddings (`models/gemini-embedding-001` / `models/text-embedding-004`) và `all-MiniLM-L6-v2`; quản lý 3 ChromaDB collections (`papers-baseline`, `papers-corrupted`, `papers-repaired`) trong `src/retrieval/index.py`.
+  - **Observability Gate:** Cài đặt chốt kiểm định chất lượng tự động chuẩn Great Expectations 1.x (Ephemeral Context, 4 expectations cốt lõi) và hệ thống cảnh báo Freshness SLA (> 180 ngày) trong `src/observability/quality.py`.
+  - **Evaluation & Benchmarking:** Sinh bộ test set chuẩn hóa 10 câu hỏi qua 4 nhóm nghiệp vụ (`summary`, `authors`, `date`, `categories`) trong `src/evaluation/testset.py`; đo lường Hit Rate, Token F1, LLM Judge Score trong `src/evaluation/metrics.py`.
+  - **Corruption Suite & Idempotent Repair:** Triển khai 6 kịch bản tiêm lỗi dữ liệu trong `src/ingestion/corruption.py`, ghi nhận hiện tượng Silent Failure trên RAG Agent; thiết kế luồng tự phục hồi Idempotent Repair từ tầng raw backup để khôi phục 100% phong độ ban đầu trong `src/pipelines/corruption_flow.py`.
+  - **Reporting & Visualization:** Tự động xuất báo cáo đối chiếu định lượng 3 trạng thái trong `src/observability/reporting.py` và hoàn thiện toàn bộ hệ thống tài liệu.
 - **Điều học được / Đóng góp chính:**
-  - Hiểu sâu sắc về thiết kế Idempotent Pipeline và quản lý trạng thái luồng dữ liệu đa tầng.
-
-### ## HoVaTen2-MSSV2
-- **Vai trò:** Phụ trách Ingestion, Làm sạch & Phục hồi dữ liệu.
-- **Công việc chi tiết đã hoàn thành:**
-  - Xây dựng module thu thập Crossref API với cơ chế Fallback offline trong `src/ingestion/crossref.py`.
-  - Chuẩn hóa schema, tính toán trường `age_days` và `text_for_embedding` trong `src/ingestion/cleaning.py`.
-  - Thực thi cơ chế Idempotent Repair phục hồi dữ liệu từ raw snapshot.
-- **Điều học được / Đóng góp chính:**
-  - Kỹ thuật truy vết nguồn gốc dữ liệu (Data Lineage) và bảo toàn raw snapshot trước khi biến đổi.
-
-### ## HoVaTen3-MSSV3
-- **Vai trò:** Phụ trách RAG, Vector Database & Embedding.
-- **Công việc chi tiết đã hoàn thành:**
-  - Quản lý mô hình embedding `sentence-transformers/all-MiniLM-L6-v2`.
-  - Nạp và quản lý 3 collection riêng biệt trong ChromaDB (`papers-baseline`, `papers-corrupted`, `papers-repaired`).
-  - Xây dựng QA Agent truy vấn ngữ cảnh chính xác theo tài liệu.
-- **Điều học được / Đóng góp chính:**
-  - Cách cô lập các không gian vector để so sánh khách quan giữa dữ liệu sạch và dữ liệu bị lỗi.
-
-### ## HoVaTen4-MSSV4
-- **Vai trò:** Phụ trách Data Observability & Benchmark Evaluation.
-- **Công việc chi tiết đã hoàn thành:**
-  - Thiết lập Quality Gate theo chuẩn mới **Great Expectations 1.x** và giám sát Freshness SLA trong `src/observability/quality.py`.
-  - Xây dựng bộ câu hỏi đánh giá chuẩn trong `src/evaluation/testset.py`.
-  - Đo lường và xuất bảng đối chiếu 3 trạng thái vào `data/reports/corruption_report.md`.
-- **Điều học được / Đóng góp chính:**
-  - Cách thiết lập hệ thống cảnh báo sớm chặn đứng hiện tượng Silent Failure trước khi dữ liệu vào serving layer.
+  - Nắm vững kiến trúc dữ liệu hiện đại cho AI: Data Observability Gate là tấm lá chắn sống còn trước khi nạp dữ liệu vào Vector DB.
+  - Hiểu rõ cơ chế "Lỗi thầm lặng" (Silent Failure): Dữ liệu bẩn không làm crash code nhưng làm AI suy giảm độ chính xác và gây ảo giác.
+  - Thiết kế Idempotent Pipeline dựa trên Raw Preservation: Luôn lưu trữ nguyên vẹn dữ liệu thô ban đầu để hệ thống có năng lực tự chữa lành (Self-Healing) khi gặp sự cố.
