@@ -87,11 +87,12 @@ Dữ liệu thô tải về thường có nhiều khoảng trắng thừa, đị
   ```
 - Khử trùng lặp bản ghi theo khóa duy nhất `paper_id` (tránh việc cùng một bài báo bị nạp 2 lần làm loãng kết quả tìm kiếm).
 
-Kiểm tra bước 3:
+Kiểm tra bước 3 (Làm sạch và lưu file dữ liệu sạch):
 ```bash
-python -c "from datetime import datetime, timezone; from core.config import load_settings; from ingestion.crossref import load_raw_records; from ingestion.cleaning import build_clean_dataframe; s=load_settings(); df=build_clean_dataframe(load_raw_records(s.paths.raw_records_json), datetime.now(timezone.utc)); print(f'Tín hiệu hoàn thành: Clean thành công {len(df)} dòng')"
+python -c "from datetime import datetime, timezone; from core.config import load_settings; from ingestion.crossref import load_raw_records; from ingestion.cleaning import build_clean_dataframe; from core.utils import write_csv, write_json; s=load_settings(); df=build_clean_dataframe(load_raw_records(s.paths.raw_records_json), datetime.now(timezone.utc)); write_csv(df, s.paths.clean_csv); write_json(s.paths.clean_json, df.to_dict(orient='records')); print(f'Tín hiệu hoàn thành: Clean thành công {len(df)} dòng')"
 ```
 > **Tín hiệu hoàn thành:** Console in ra `Tín hiệu hoàn thành: Clean thành công 24 dòng`.
+
 
 ---
 
