@@ -1,0 +1,57 @@
+[
+  {
+    "corruption_type": "drop_latest_records",
+    "count": 4,
+    "dropped_paper_ids": [
+      "10.1145/3637528.3671812",
+      "10.1145/3637528.3671808",
+      "10.1145/3637528.3671804",
+      "10.1145/3637528.3671807"
+    ],
+    "description": "Dropped top 4 newest records."
+  },
+  {
+    "corruption_type": "blank_summary",
+    "count": 2,
+    "affected_paper_ids": [
+      "10.1145/3637528.3671802",
+      "10.1145/3637528.3671824"
+    ],
+    "description": "Erased summary text for selected rows."
+  },
+  {
+    "corruption_type": "inject_noise",
+    "count": 2,
+    "affected_paper_ids": [
+      "10.1145/3637528.3671823",
+      "10.1145/3637528.3671822"
+    ],
+    "description": "Injected gibberish noise tokens into summary."
+  },
+  {
+    "corruption_type": "truncate_title",
+    "count": 1,
+    "affected_paper_ids": [
+      "10.1145/3637528.3671821"
+    ],
+    "description": "Truncated title string to less than 8 characters."
+  },
+  {
+    "corruption_type": "stale_date",
+    "count": 2,
+    "affected_paper_ids": [
+      "10.1145/3637528.3671810",
+      "10.1145/3637528.3671820"
+    ],
+    "description": "Shifted publication date back by 365 days."
+  },
+  {
+    "corruption_type": "duplicate_rows",
+    "count": 2,
+    "duplicated_paper_ids": [
+      "10.1145/3637528.3671802",
+      "10.1145/3637528.3671824"
+    ],
+    "description": "Duplicated records to induce uniqueness violations."
+  }
+]
