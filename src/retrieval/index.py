@@ -25,20 +25,77 @@ class LocalEmbeddingIndex:
     def __init__(
         self,
         settings: Settings,
-        collection_name: str,
-        documents: list[dict[str, Any]],
-        persist_path: Path,
+        collection_name: str | None = None,
+        documents: list[dict[str, Any]] | None = None,
+        persist_path: Path | None = None,
     ):
         self.settings = settings
-        self.collection_name = collection_name
-        self.documents = documents
-        self.persist_path = persist_path
+        self.collection_name = collection_name or settings.baseline_collection_name
+        self.documents = documents or []
+        self.persist_path = persist_path or settings.paths.chroma_dir
+        self.persist_path.mkdir(parents=True, exist_ok=True)
         self.embedding_backend = "chroma"
         self.embedding_model = MiniLMEmbeddings(settings.embedding_model)
-        self.client = chromadb.PersistentClient(path=str(persist_path))
-        self.collection = self.client.get_collection(name=collection_name)
+        self.client = chromadb.PersistentClient(path=str(self.persist_path))
+        try:
+            self.collection = self.client.get_collection(name=self.collection_name)
+        except Exception:
+            self.collection = self.client.get_or_create_collection(
+                name=self.collection_name,
+                configuration={"hnsw": {"space": "cosine"}},
+            )
+        self.documents_by_paper_id = {document["paper_id"].lower(): document for document in self.documents if "paper_id" in document}
+        self.documents_by_title = {document["title"].lower(): document for document in self.documents if "title" in document}
+
+    def build_from_clean(self, clean_path: Path | None = None) -> "LocalEmbeddingIndex":
+        """Build or refresh the index from cleaned records on disk."""
+        target_path = clean_path or self.settings.paths.clean_json
+        if not target_path.exists() and self.settings.paths.clean_csv.exists():
+            target_path = self.settings.paths.clean_csv
+
+        if str(target_path).endswith(".csv"):
+            df = pd.read_csv(target_path)
+        else:
+            df = pd.read_json(target_path)
+
+        documents = self._build_documents(df)
+        self.documents = documents
         self.documents_by_paper_id = {document["paper_id"].lower(): document for document in documents}
         self.documents_by_title = {document["title"].lower(): document for document in documents}
+
+        try:
+            self.client.delete_collection(name=self.collection_name)
+        except Exception:
+            pass
+        self.collection = self.client.create_collection(
+            name=self.collection_name,
+            configuration={"hnsw": {"space": "cosine"}},
+        )
+        embeddings = self.embedding_model.embed_documents([document["content"] for document in documents])
+        self.collection.add(
+            ids=[document["record_id"] for document in documents],
+            embeddings=embeddings,
+            documents=[document["content"] for document in documents],
+            metadatas=[document["metadata"] for document in documents],
+        )
+
+        manifest_path = self.settings.paths.embeddings_json
+        write_json(
+            manifest_path,
+            {
+                "backend": "chroma",
+                "embedding_model": self.settings.embedding_model,
+                "persist_path": str(self.persist_path),
+                "collection_name": self.collection_name,
+                "documents": documents,
+            },
+        )
+        return self
+
+    def semantic_search(self, query: str, top_k: int | None = None) -> list[SearchResult]:
+        """Convenience alias for search."""
+        return self.search(query, top_k=top_k)
+
 
     @staticmethod
     def _build_documents(df: pd.DataFrame) -> list[dict[str, Any]]:
